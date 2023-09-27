@@ -86,7 +86,6 @@ class TicTacToe:
         else:
             self.currentPlayer = self.humanPlayer
 
-# Clase para el jugador humano
 class HumanPlayer:
     def __init__(self, game):
         self.game = game
@@ -94,7 +93,6 @@ class HumanPlayer:
     def make_move(self, position):
         return self.game.make_move(position)
 
-# Clase para la inteligencia artificial
 class BotPlayer:
     def __init__(self, game):
         self.game = game
