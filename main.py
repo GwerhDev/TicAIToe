@@ -1,154 +1,182 @@
+import pygame
 import random
 import math
-import os
 
-class TicAIToe:
+WIDTH = 600
+HEIGHT = 600
+
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+
+pygame.init()
+
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Tic Tac Toe")
+
+font = pygame.font.Font(None, 60)
+
+class TicTacToe:
     def __init__(self):
         self.board = ['-' for _ in range(9)]
         if random.randint(0, 1) == 1:
             self.humanPlayer = 'X'
-            self.botPlayer = "O"
+            self.botPlayer = 'O'
         else:
-            self.humanPlayer = "O"
-            self.botPlayer = "X"
+            self.humanPlayer = 'O'
+            self.botPlayer = 'X'
+        self.currentPlayer = self.humanPlayer
 
-    def show_board(self):
-        print("")
+    def draw_board(self):
+        window.fill(BLACK)
+        pygame.draw.line(window, WHITE, (WIDTH/3, 0), (WIDTH/3, HEIGHT), 5)
+        pygame.draw.line(window, WHITE, (2*WIDTH/3, 0), (2*WIDTH/3, HEIGHT), 5)
+        pygame.draw.line(window, WHITE, (0, HEIGHT/3), (WIDTH, HEIGHT/3), 5)
+        pygame.draw.line(window, WHITE, (0, 2*HEIGHT/3), (WIDTH, 2*HEIGHT/3), 5)
+
         for i in range(3):
-            print("  ",self.board[0+(i*3)]," | ",self.board[1+(i*3)]," | ",self.board[2+(i*3)])
-            print("")
-            
-    def is_board_filled(self,state):
-        return not "-" in state
+            for j in range(3):
+                if self.board[i*3 + j] == 'X':
+                    text = font.render('X', True, WHITE)
+                    window.blit(text, (j*WIDTH/3 + WIDTH/6 - text.get_width()/2, i*HEIGHT/3 + HEIGHT/6 - text.get_height()/2))
+                elif self.board[i*3 + j] == 'O':
+                    text = font.render('O', True, WHITE)
+                    window.blit(text, (j*WIDTH/3 + WIDTH/6 - text.get_width()/2, i*HEIGHT/3 + HEIGHT/6 - text.get_height()/2))
 
-    def is_player_win(self,state,player):
-        if state[0]==state[1]==state[2] == player: return True
-        if state[3]==state[4]==state[5] == player: return True
-        if state[6]==state[7]==state[8] == player: return True
-        if state[0]==state[3]==state[6] == player: return True
-        if state[1]==state[4]==state[7] == player: return True
-        if state[2]==state[5]==state[8] == player: return True
-        if state[0]==state[4]==state[8] == player: return True
-        if state[2]==state[4]==state[6] == player: return True
+    def is_board_filled(self):
+        return not '-' in self.board
 
-        return False
-
-    def checkWinner(self):
-        if self.is_player_win(self.board,self.humanPlayer):
-            os.system("cls")
-            print(f"   Player {self.humanPlayer} wins the game!")
+    def is_player_win(self, player):
+        if self.board[0] == self.board[1] == self.board[2] == player:
             return True
-            
-        if self.is_player_win(self.board,self.botPlayer):
-            os.system("cls")
-            print(f"   Player {self.botPlayer} wins the game!")
+        if self.board[3] == self.board[4] == self.board[5] == player:
             return True
-
-        if self.is_board_filled(self.board):
-            os.system("cls")
-            print("   Match Draw!")
+        if self.board[6] == self.board[7] == self.board[8] == player:
+            return True
+        if self.board[0] == self.board[3] == self.board[6] == player:
+            return True
+        if self.board[1] == self.board[4] == self.board[7] == player:
+            return True
+        if self.board[2] == self.board[5] == self.board[8] == player:
+            return True
+        if self.board[0] == self.board[4] == self.board[8] == player:
+            return True
+        if self.board[2] == self.board[4] == self.board[6] == player:
             return True
         return False
 
-    def start(self):
-        bot = BotPlayer(self.botPlayer)
-        human = HumanPlayer(self.humanPlayer)
-        while True:
-            os.system("cls")
-            print(f"   Player {self.humanPlayer} turn")
-            self.show_board()
-            
-            square = human.human_move(self.board)
-            self.board[square] = self.humanPlayer
-            if self.checkWinner():
-                break
-            
-            square = bot.machine_move(self.board)
-            self.board[square] = self.botPlayer
-            if self.checkWinner():
-                break
-        print()
-        self.show_board()
+    def check_winner(self):
+        if self.is_player_win(self.humanPlayer):
+            return self.humanPlayer
+        if self.is_player_win(self.botPlayer):
+            return self.botPlayer
+        if self.is_board_filled():
+            return 'draw'
+        return None
 
-class HumanPlayer:
-    def __init__(self,letter):
-        self.letter = letter
-    
-    def human_move(self,state):
-        while True:
-            square =  int(input("Enter the square to fix spot(1-9): "))
-            print()
-            if state[square-1] == "-":
-                break
-        return square-1
-
-class BotPlayer(TicAIToe):
-    def __init__(self,letter):
-        self.botPlayer = letter
-        self.humanPlayer = "X" if letter == "O" else "O"
-
-    def players(self,state):
-        n = len(state)
-        x = 0
-        o = 0
-        for i in range(9):
-            if(state[i] == "X"):
-                x = x+1
-            if(state[i] == "O"):
-                o = o+1
-        
-        if(self.humanPlayer == "X"):
-            return "X" if x==o else "O"
-        if(self.humanPlayer == "O"):
-            return "O" if x==o else "X"
-    
-    def actions(self,state):
-        return [i for i, x in enumerate(state) if x == "-"]
-    
-    def result(self,state,action):
-        newState = state.copy()
-        player = self.players(state)
-        newState[action] = player
-        return newState
-    
-    def terminal(self,state):
-        if(self.is_player_win(state,"X")):
-            return True
-        if(self.is_player_win(state,"O")):
+    def make_move(self, position):
+        if self.board[position] == '-':
+            self.board[position] = self.currentPlayer
             return True
         return False
 
-    def minimax(self, state, player):
-        max_player = self.humanPlayer
-        other_player = 'O' if player == 'X' else 'X'
-
-        if self.terminal(state):
-            return {'position': None, 'score': 1 * (len(self.actions(state)) + 1) if other_player == max_player else -1 * (
-                        len(self.actions(state)) + 1)}
-        elif self.is_board_filled(state):
-            return {'position': None, 'score': 0}
-
-        if player == max_player:
-            best = {'position': None, 'score': -math.inf}
+    def switch_player(self):
+        if self.currentPlayer == self.humanPlayer:
+            self.currentPlayer = self.botPlayer
         else:
-            best = {'position': None, 'score': math.inf}
-        for possible_move in self.actions(state):
-            newState = self.result(state,possible_move)
-            sim_score = self.minimax(newState, other_player)
+            self.currentPlayer = self.humanPlayer
 
-            sim_score['position'] = possible_move
+# Clase para el jugador humano
+class HumanPlayer:
+    def __init__(self, game):
+        self.game = game
 
-            if player == max_player:
-                if sim_score['score'] > best['score']:
-                    best = sim_score
-            else:
-                if sim_score['score'] < best['score']:
-                    best = sim_score
-        return best
+    def make_move(self, position):
+        return self.game.make_move(position)
 
-    def machine_move(self,state):
-        square = self.minimax(state,self.botPlayer)['position']
-        return square
+# Clase para la inteligencia artificial
+class BotPlayer:
+    def __init__(self, game):
+        self.game = game
 
-tic_ai_toe = TicAIToe()
-tic_ai_toe.start()
+    def make_move(self):
+        best_score = -math.inf
+        best_move = None
+
+        for i in range(9):
+            if self.game.board[i] == '-':
+                self.game.board[i] = self.game.botPlayer
+                score = self.minimax(self.game.board, 0, False)
+                self.game.board[i] = '-'
+
+                if score > best_score:
+                    best_score = score
+                    best_move = i
+
+        self.game.make_move(best_move)
+
+    def minimax(self, board, depth, is_maximizing):
+        result = self.game.check_winner()
+
+        if result == self.game.humanPlayer:
+            return -1
+        elif result == self.game.botPlayer:
+            return 1
+        elif result == 'draw':
+            return 0
+
+        if is_maximizing:
+            best_score = -math.inf
+            for i in range(9):
+                if board[i] == '-':
+                    board[i] = self.game.botPlayer
+                    score = self.minimax(board, depth + 1, False)
+                    board[i] = '-'
+                    best_score = max(score, best_score)
+            return best_score
+        else:
+            best_score = math.inf
+            for i in range(9):
+                if board[i] == '-':
+                    board[i] = self.game.humanPlayer
+                    score = self.minimax(board, depth + 1, True)
+                    board[i] = '-'
+                    best_score = min(score, best_score)
+            return best_score
+
+game = TicTacToe()
+human_player = HumanPlayer(game)
+bot_player = BotPlayer(game)
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and game.currentPlayer == game.humanPlayer:
+            x, y = pygame.mouse.get_pos()
+            row = y // (HEIGHT // 3)
+            col = x // (WIDTH // 3)
+            position = row * 3 + col
+            if human_player.make_move(position):
+                if game.check_winner() is None:
+                    game.switch_player()
+
+    if game.currentPlayer == game.botPlayer:
+        bot_player.make_move()
+        if game.check_winner() is None:
+            game.switch_player()
+
+    game.draw_board()
+
+    result = game.check_winner()
+    if result:
+        if result == 'draw':
+            text = font.render('Draw!', True, RED)
+        else:
+            text = font.render(f'{result} wins!', True, RED)
+        window.blit(text, (WIDTH/2 - text.get_width()/2, HEIGHT/2 - text.get_height()/2))
+
+    pygame.display.update()
+
+pygame.quit()
